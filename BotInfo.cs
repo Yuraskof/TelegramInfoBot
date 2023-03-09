@@ -1,7 +1,8 @@
 ﻿namespace TelegramInfoBot
 {
-    public class BotToken
+    public class BotInfo
     {
         public string Token { get; set; }
+        public long ChatId { get; set; }
     }
 }

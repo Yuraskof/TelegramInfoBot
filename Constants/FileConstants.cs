@@ -2,6 +2,6 @@
 {
     public static class FileConstants
     {
-        public const string PathToBotToken = @"..\..\..\BotToken.json";
+        public const string PathToBotToken = @"..\..\..\BotInfo.json";
     }
 }

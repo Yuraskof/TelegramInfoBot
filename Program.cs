@@ -7,7 +7,7 @@ using TelegramInfoBot.Utils;
 using LiteDB;
 using TelegramInfoBot;
 
-var botClient = new TelegramBotClient(FileUtils.BotToken.Token);
+var botClient = new TelegramBotClient(FileUtils.BotInfo.Token);
 var database = new LiteDatabase("preferences.db");
 
 

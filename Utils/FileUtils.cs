@@ -12,7 +12,7 @@ namespace TelegramInfoBot.Utils
 {
     public static class FileUtils
     {
-        public static readonly BotToken BotToken = JsonUtils.ReadJsonDataFromPath<BotToken>(FileConstants.PathToBotToken);
+        public static readonly BotInfo BotInfo = JsonUtils.ReadJsonDataFromPath<BotInfo>(FileConstants.PathToBotToken);
 
         public static string ReadFile(string path)
         {
