@@ -22,7 +22,7 @@ public class UpdateHandler: IUpdateHandler
             
             if (message.Text.ToLower() == "/start" || message.Text.ToLower() == "/command1")
             {
-                Console.WriteLine($"При первом запуске бота, скопировать Chat Id в файл (fileName) для получения сообщений от остальных ботов");
+                Console.WriteLine($"При первом запуске бота, скопировать Chat Id в файл BotInfo.json для получения сообщений от остальных ботов");
                 Console.WriteLine($"Chat Id = {message.Chat.Id}");
                 Console.WriteLine($"Username = {message.From.Username}, {message.From.FirstName} {message.From.LastName}");
 
@@ -236,6 +236,15 @@ public class UpdateHandler: IUpdateHandler
             //StrategyMenu(botClient: botClient, chatId: update.CallbackQuery.From.Id, cancellationToken: cancellationToken);
             //return;
         }
+        if (codeOfButton == "SettingsButtonMainMenu")
+        {
+            Console.WriteLine("Нажата Кнопка Посмотреть текущие настройки");
+
+            Message sentMessage = await botClient.SendTextMessageAsync(
+                chatId: update.CallbackQuery.From.Id,
+                text: DatabaseUtil.LoadBotParamForUser(update.CallbackQuery.From.Username),
+                cancellationToken: cancellationToken);
+        }
     }
 
     private async void SelectPricing(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken, string codeOfButton)
@@ -307,6 +316,10 @@ public class UpdateHandler: IUpdateHandler
                 {
                     InlineKeyboardButton.WithCallbackData("Выбор депозита", callbackData: "DepositButtonMainMenu"),
                     InlineKeyboardButton.WithCallbackData("Выбор стратегии", callbackData: "StrategyButtonMainMenu"),
+                },
+                new[]
+                {
+                    InlineKeyboardButton.WithCallbackData(text: "Текущие настройки", callbackData: "SettingsButtonMainMenu"),
                 },
                 new[]
                 {

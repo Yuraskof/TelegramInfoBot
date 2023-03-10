@@ -88,5 +88,34 @@ namespace TelegramInfoBot.Utils
                     $"Пользователь {currentUser.FirstLastName} @{currentUser.Username},\nТариф - {currentUser.Pricing},\nСтратегия - {currentUser.Strategy},\nДепозит - {currentUser.Deposit},\nСпособ оплаты - {currentUser.PaymentType}";
             }
         }
+
+        public static string LoadBotParamForUser(string userName)
+        {
+            using (var db = new LiteDatabase(@"Filename = ../../../UserInfo.db; connection = shared"))
+            {
+                // Get a collection (or create, if doesn't exist)
+                var col = db.GetCollection<User>("BotUsers");
+
+                // Create your new customer instance
+                var currentUser = col.FindOne(x => x.Username == userName);
+
+                if (currentUser == null)
+                {
+                    return null; 
+                }
+
+                
+                var message = currentUser.Pricing == null ? "Tариф не выбран,\n" : $"Тариф  - {currentUser.Pricing},\n";
+
+                message = currentUser.Strategy == null ? $"{message}Стратегия не выбрана,\n" : $"{message}Стратегия  - {currentUser.Strategy},\n";
+
+                message = currentUser.Deposit == null? $"{message}Депозит не выбран,\n" : $"{message}Депозит  - {currentUser.Deposit},\n";
+
+                message = currentUser.PaymentType == null ? $"{message}Способ оплаты не выбран\n" : $"{message}Способ оплаты  - {currentUser.PaymentType}\n";
+
+
+                return message;
+            }
+        }
     }
 }
