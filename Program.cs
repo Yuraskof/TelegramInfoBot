@@ -1,15 +1,10 @@
 ﻿using Telegram.Bot;
-using Telegram.Bot.Exceptions;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Types;
 using TelegramInfoBot.Utils;
-using LiteDB;
 using TelegramInfoBot;
 
 var botClient = new TelegramBotClient(FileUtils.BotInfo.Token);
-var database = new LiteDatabase("preferences.db");
-
 
 var cts = new CancellationTokenSource();
 Console.CancelKeyPress += (_, _) => cts.Cancel(); // Чтобы отловить нажатие ctrl+C и всякие sigterm, sigkill, etc

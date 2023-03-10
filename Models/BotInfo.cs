@@ -1,4 +1,4 @@
-﻿namespace TelegramInfoBot
+﻿namespace TelegramInfoBot.Models
 {
     public class BotInfo
     {

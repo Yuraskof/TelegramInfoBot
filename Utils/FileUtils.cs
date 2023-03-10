@@ -7,6 +7,7 @@ using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types;
 using TelegramInfoBot.Utils;
 using LiteDB;
+using TelegramInfoBot.Models;
 
 namespace TelegramInfoBot.Utils
 {

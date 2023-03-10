@@ -15,26 +15,27 @@ public class UpdateHandler: IUpdateHandler
 {
     public async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
     {
+        Console.OutputEncoding = Encoding.UTF8;
+
         if (update.Type == Telegram.Bot.Types.Enums.UpdateType.Message)
         {
             var message = update.Message;
             
-
             if (message.Text.ToLower() == "/start" || message.Text.ToLower() == "/command1") // TODO вернуться, info from files,
                                                                                              // после каждого выбора сохранять в переменные в бд для послед отправки
                                                                                              // перед Старт - проверка заполненности всех пунктов
             {
                 Console.WriteLine($"При первом запуске бота, скопировать Chat Id в файл (fileName) для получения сообщений от остальных ботов");
                 Console.WriteLine($"Chat Id = {message.Chat.Id}");
-                Console.WriteLine($"Username = {message.From.Username}");
+                Console.WriteLine($"Username = {message.From.Username}, {message.From.FirstName} {message.From.LastName}");
+
+                
                 MainMenu(botClient: botClient, chatId: message.Chat.Id, cancellationToken: cancellationToken);
                 return;
             }
         }
         if (update.Type == Telegram.Bot.Types.Enums.UpdateType.CallbackQuery)
         {
-            Console.OutputEncoding = Encoding.UTF8;
-
             string codeOfButton = update.CallbackQuery.Data;
 
             if (codeOfButton == "Info")
