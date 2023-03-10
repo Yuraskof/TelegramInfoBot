@@ -60,8 +60,32 @@ namespace TelegramInfoBot.Utils
                     return null; // message?
                 }
 
+                string errorMessage = null;
+
+                if (currentUser.Pricing == null)
+                {
+                    errorMessage = "Необходимо выбрать тариф \n";
+                }
+                if (currentUser.Deposit == null)
+                {
+                    errorMessage = $"{errorMessage}Необходимо выбрать депозит \n";
+                }
+                if (currentUser.PaymentType == null)
+                {
+                    errorMessage = $"{errorMessage}Необходимо выбрать способ оплаты \n";
+                }
+                if (currentUser.Strategy == null)
+                {
+                    errorMessage = $"{errorMessage}Необходимо выбрать стратегию";
+                }
+
+                if (errorMessage != null)
+                {
+                    throw new Exception(errorMessage);
+                }
+
                 return
-                    $"{currentUser.Username}, {currentUser.FirstLastName}, {currentUser.Pricing}, {currentUser.Strategy}, {currentUser.Deposit}, {currentUser.PaymentType}";
+                    $"Пользователь {currentUser.FirstLastName} @{currentUser.Username},\nТариф - {currentUser.Pricing},\nСтратегия - {currentUser.Strategy},\nДепозит - {currentUser.Deposit},\nСпособ оплаты - {currentUser.PaymentType}";
             }
         }
     }

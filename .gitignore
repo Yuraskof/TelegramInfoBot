@@ -363,3 +363,4 @@ MigrationBackup/
 FodyWeavers.xsd
 /BotToken.json
 /BotInfo.json
+/UserInfo.db

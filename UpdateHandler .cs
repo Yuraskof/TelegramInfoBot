@@ -3,10 +3,9 @@ using Telegram.Bot;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Exceptions;
-using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
+using TelegramInfoBot.Models;
 using TelegramInfoBot.Utils;
-using static System.Net.WebRequestMethods;
 
 
 namespace TelegramInfoBot;
@@ -21,16 +20,15 @@ public class UpdateHandler: IUpdateHandler
         {
             var message = update.Message;
             
-            if (message.Text.ToLower() == "/start" || message.Text.ToLower() == "/command1") // TODO вернуться, info from files,
-                                                                                             // после каждого выбора сохранять в переменные в бд для послед отправки
-                                                                                             // перед Старт - проверка заполненности всех пунктов
+            if (message.Text.ToLower() == "/start" || message.Text.ToLower() == "/command1")
             {
                 Console.WriteLine($"При первом запуске бота, скопировать Chat Id в файл (fileName) для получения сообщений от остальных ботов");
                 Console.WriteLine($"Chat Id = {message.Chat.Id}");
                 Console.WriteLine($"Username = {message.From.Username}, {message.From.FirstName} {message.From.LastName}");
 
+                DatabaseUtil.SaveBotParam(message.From.Username, UserFields.FirstLastName, $"{message.From.FirstName} {message.From.LastName}");
                 
-                MainMenu(botClient: botClient, chatId: message.Chat.Id, cancellationToken: cancellationToken);
+                MainMenu(botClient: botClient, chatId: message.Chat.Id, cancellationToken: cancellationToken, "Приветствие");
                 return;
             }
         }
@@ -38,65 +36,238 @@ public class UpdateHandler: IUpdateHandler
         {
             string codeOfButton = update.CallbackQuery.Data;
 
-            if (codeOfButton == "Info")
+            if (codeOfButton.Contains("MainMenu"))
             {
-                Console.WriteLine("Нажата Кнопка Info");
-                string telegramMessage = "Информация о боте";
-                await botClient.SendTextMessageAsync(chatId: update.CallbackQuery.From.Id, telegramMessage, parseMode: Telegram.Bot.Types.Enums.ParseMode.Html);
+                SelectFromMainMenu(botClient, update, cancellationToken, codeOfButton);
                 return;
             }
-            if (codeOfButton == "Pricing")
+            
+            if (codeOfButton.Contains("Pricing")) 
             {
-                Console.WriteLine("Нажата Кнопка Pricing");
-                
-                PricingMenu(botClient: botClient, chatId: update.CallbackQuery.From.Id, cancellationToken: cancellationToken);
-                return;
-                
-                // await botClient.EditMessageCaptionAsync(chatId: update.CallbackQuery.Message.Chat.Id, caption: telegramMessage, messageId: update.CallbackQuery.Message.MessageId);
-                //await botClient.EditMessageTextAsync(update.CallbackQuery.Message.Chat.Id, update.CallbackQuery.Message.MessageId, telegramMessage, replyMarkup: inlineKeyBoard, parseMode: Telegram.Bot.Types.Enums.ParseMode.Html);
-            }
-            if (codeOfButton == "PricingInfo")
-            {
-                Console.WriteLine("Нажата Кнопка PricingInfo");
-                string telegramMessage = "Информация о тарифах";
-                await botClient.SendTextMessageAsync(chatId: update.CallbackQuery.From.Id, telegramMessage, parseMode: Telegram.Bot.Types.Enums.ParseMode.Html);
+                SelectPricing(botClient, update, cancellationToken, codeOfButton);
                 return;
             }
-            if (codeOfButton == "MainMenu")
-            {
-                MainMenuSimple(botClient: botClient, update.CallbackQuery.From.Id, cancellationToken: cancellationToken);
-                return;
-            }
-            if (codeOfButton == "Payment")
-            {
-                Console.WriteLine("Нажата Кнопка Payment");
 
-                PaymentMenu(botClient: botClient, chatId: update.CallbackQuery.From.Id, cancellationToken: cancellationToken);
+            if (codeOfButton.Contains("Strategy")) 
+            {
+                SelectStrategy(botClient, update, cancellationToken, codeOfButton);
                 return;
             }
-            if (codeOfButton == "Deposit")
-            {
-                Console.WriteLine("Нажата Кнопка Deposit");
 
-                DepositMenu(botClient: botClient, chatId: update.CallbackQuery.From.Id, cancellationToken: cancellationToken);
+            if (codeOfButton.Contains("Payment"))
+            {
+                SelectPayment(botClient, update, cancellationToken, codeOfButton);
                 return;
             }
-            if (codeOfButton == "Strategy")
-            {
-                Console.WriteLine("Нажата Кнопка Strategy");
 
-                StrategyMenu(botClient: botClient, chatId: update.CallbackQuery.From.Id, cancellationToken: cancellationToken);
+            if (codeOfButton.Contains("Deposit"))
+            {
+                SelectDeposit(botClient, update, cancellationToken, codeOfButton);
                 return;
             }
-            if (codeOfButton == "Start")
+        }
+    }
+
+    private void SelectDeposit(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken, string codeOfButton)
+    {
+        if (codeOfButton == "Deposit1")
+        {
+            Console.WriteLine("Пользователь выбрал Deposit1");
+
+            DatabaseUtil.SaveBotParam(update.CallbackQuery.From.Username, UserFields.Deposit, codeOfButton);
+
+            MainMenu(botClient: botClient, update.CallbackQuery.From.Id, cancellationToken: cancellationToken, "Выбран Deposit1");
+            return;
+        }
+        if (codeOfButton == "Deposit2")
+        {
+            Console.WriteLine("Пользователь выбрал Deposit2");
+            DatabaseUtil.SaveBotParam(update.CallbackQuery.From.Username, UserFields.Deposit, codeOfButton);
+            MainMenu(botClient: botClient, update.CallbackQuery.From.Id, cancellationToken: cancellationToken, "Выбран Deposit2");
+            return;
+
+        }
+        if (codeOfButton == "Deposit3")
+        {
+            Console.WriteLine("Пользователь выбрал Deposit3");
+            DatabaseUtil.SaveBotParam(update.CallbackQuery.From.Username, UserFields.Deposit, codeOfButton);
+
+            MainMenu(botClient: botClient, update.CallbackQuery.From.Id, cancellationToken: cancellationToken, "Выбран Deposit3");
+            return;
+        }
+    }
+
+    private async void SelectPayment(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken, string codeOfButton)
+    {
+        if (codeOfButton == "PaymentInfo")
+        {
+            Console.WriteLine("Нажата Кнопка Информация о способах оплаты");
+            string telegramMessage = "Информация о способах оплаты";
+            await botClient.SendTextMessageAsync(chatId: update.CallbackQuery.From.Id, telegramMessage, parseMode: Telegram.Bot.Types.Enums.ParseMode.Html);
+            return;
+        }
+        if (codeOfButton == "TON Payment")
+        {
+            Console.WriteLine("Пользователь выбрал оплату в TON");
+
+            DatabaseUtil.SaveBotParam(update.CallbackQuery.From.Username, UserFields.PaymentType, codeOfButton);
+
+            MainMenu(botClient: botClient, update.CallbackQuery.From.Id, cancellationToken: cancellationToken, "Выбрана оплата в TON");
+            return;
+        }
+        if (codeOfButton == "Fiat Payment")
+        {
+            Console.WriteLine("Пользователь выбрал оплату фиатом");
+            DatabaseUtil.SaveBotParam(update.CallbackQuery.From.Username, UserFields.PaymentType, codeOfButton);
+            MainMenu(botClient: botClient, update.CallbackQuery.From.Id, cancellationToken: cancellationToken, "Выбрана оплата фиатом");
+            return;
+
+        }
+        if (codeOfButton == "Crypto Payment")
+        {
+            Console.WriteLine("Пользователь выбрал оплату криптой");
+            DatabaseUtil.SaveBotParam(update.CallbackQuery.From.Username, UserFields.PaymentType, codeOfButton);
+
+            MainMenu(botClient: botClient, update.CallbackQuery.From.Id, cancellationToken: cancellationToken, "Выбрана оплата криптой");
+            return;
+        }
+    }
+
+    private void SelectStrategy(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken, string codeOfButton)
+    {
+        if (codeOfButton == "Aggressive Strategy")
+        {
+            Console.WriteLine("Пользователь выбрал Aggressive Strategy");
+
+            DatabaseUtil.SaveBotParam(update.CallbackQuery.From.Username, UserFields.Strategy, codeOfButton);
+
+            MainMenu(botClient: botClient, update.CallbackQuery.From.Id, cancellationToken: cancellationToken, "Выбрана стратегия Aggressive");
+            return;
+        }
+        if (codeOfButton == "Medium Strategy")
+        {
+            Console.WriteLine("Пользователь выбрал Medium Strategy");
+            DatabaseUtil.SaveBotParam(update.CallbackQuery.From.Username, UserFields.Strategy, codeOfButton);
+            MainMenu(botClient: botClient, update.CallbackQuery.From.Id, cancellationToken: cancellationToken, "Выбрана стратегия Medium");
+            return;
+
+        }
+        if (codeOfButton == "Lite Strategy")
+        {
+            Console.WriteLine("Пользователь выбрал Lite Strategy");
+            DatabaseUtil.SaveBotParam(update.CallbackQuery.From.Username, UserFields.Strategy, codeOfButton);
+
+            MainMenu(botClient: botClient, update.CallbackQuery.From.Id, cancellationToken: cancellationToken, "Выбрана стратегия Lite");
+            return;
+        }
+    }
+
+    private async void SelectFromMainMenu(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken, string codeOfButton)
+    {
+        if (codeOfButton == "InfoButtonMainMenu")
+        {
+            Console.WriteLine("Нажата Кнопка Info");
+            string telegramMessage = "Информация о боте";
+            await botClient.SendTextMessageAsync(chatId: update.CallbackQuery.From.Id, telegramMessage, parseMode: Telegram.Bot.Types.Enums.ParseMode.Html);
+            return;
+        }
+        if (codeOfButton == "PricingButtonMainMenu")
+        {
+            Console.WriteLine("Нажата Кнопка Выбор тарифа");
+
+            PricingMenu(botClient: botClient, chatId: update.CallbackQuery.From.Id, cancellationToken: cancellationToken);
+            return;
+
+            // await botClient.EditMessageCaptionAsync(chatId: update.CallbackQuery.Message.Chat.Id, caption: telegramMessage, messageId: update.CallbackQuery.Message.MessageId);
+            //await botClient.EditMessageTextAsync(update.CallbackQuery.Message.Chat.Id, update.CallbackQuery.Message.MessageId, telegramMessage, replyMarkup: inlineKeyBoard, parseMode: Telegram.Bot.Types.Enums.ParseMode.Html);
+        }
+        if (codeOfButton == "MainMenuButton")
+        {
+            MainMenu(botClient: botClient, update.CallbackQuery.From.Id, cancellationToken: cancellationToken, "Главное меню");
+            return;
+        }
+        if (codeOfButton == "PaymentButtonMainMenu")
+        {
+            Console.WriteLine("Нажата Кнопка Выбор способа оплаты");
+
+            PaymentMenu(botClient: botClient, chatId: update.CallbackQuery.From.Id, cancellationToken: cancellationToken);
+            return;
+        }
+        if (codeOfButton == "DepositButtonMainMenu")
+        {
+            Console.WriteLine("Нажата Кнопка выбор депозита");
+
+            DepositMenu(botClient: botClient, chatId: update.CallbackQuery.From.Id, cancellationToken: cancellationToken);
+            return;
+        }
+        if (codeOfButton == "StrategyButtonMainMenu")
+        {
+            Console.WriteLine("Нажата Кнопка выбор стратегии");
+
+            StrategyMenu(botClient: botClient, chatId: update.CallbackQuery.From.Id, cancellationToken: cancellationToken);
+            return;
+        }
+        if (codeOfButton == "StartButtonMainMenu")
+        {
+            Console.WriteLine("Нажата Кнопка Start");
+
+            try
             {
-                Console.WriteLine("Нажата Кнопка Start");
-                string telegramMessage = "Start send";
+                string telegramMessage = DatabaseUtil.LoadBotParam(update.CallbackQuery.From.Username);
                 await botClient.SendTextMessageAsync(chatId: FileUtils.BotInfo.ChatId, telegramMessage, parseMode: Telegram.Bot.Types.Enums.ParseMode.Html);
-                return;
-                //StrategyMenu(botClient: botClient, chatId: update.CallbackQuery.From.Id, cancellationToken: cancellationToken);
-                //return;
+               
+                Message sentMessage = await botClient.SendTextMessageAsync(
+                    chatId: update.CallbackQuery.From.Id,
+                    text: "Бот успешно запущен!",
+                    cancellationToken: cancellationToken);
             }
+            catch (Exception e)
+            {
+                Console.WriteLine("Пользователь заполнил не все поля");
+
+                Message sentMessage = await botClient.SendTextMessageAsync(
+                    chatId: update.CallbackQuery.From.Id,
+                    text: e.Message,
+                    cancellationToken: cancellationToken);
+            }
+
+            return;
+
+            //StrategyMenu(botClient: botClient, chatId: update.CallbackQuery.From.Id, cancellationToken: cancellationToken);
+            //return;
+        }
+    }
+
+    private async void SelectPricing(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken, string codeOfButton)
+    {
+        if (codeOfButton == "PricingInfo")
+        {
+            Console.WriteLine("Нажата Кнопка PricingInfo");
+            string telegramMessage = "Информация о тарифах";
+            await botClient.SendTextMessageAsync(chatId: update.CallbackQuery.From.Id, telegramMessage, parseMode: Telegram.Bot.Types.Enums.ParseMode.Html);
+            return;
+        }
+        if (codeOfButton == "Pricing1")
+        {
+            Console.WriteLine("Пользователь выбрал тариф 1");
+            DatabaseUtil.SaveBotParam(update.CallbackQuery.From.Username, UserFields.Pricing, codeOfButton);
+            MainMenu(botClient: botClient, update.CallbackQuery.From.Id, cancellationToken: cancellationToken, "Выбран тариф 1");
+            return;
+        }
+        if (codeOfButton == "Pricing2")
+        {
+            Console.WriteLine("Пользователь выбрал тариф 2");
+            DatabaseUtil.SaveBotParam(update.CallbackQuery.From.Username, UserFields.Pricing, codeOfButton);
+            MainMenu(botClient: botClient, update.CallbackQuery.From.Id, cancellationToken: cancellationToken, "Выбран тариф 2");
+            return;
+
+        }
+        if (codeOfButton == "Pricing3")
+        {
+            Console.WriteLine("Пользователь выбрал тариф 3");
+            DatabaseUtil.SaveBotParam(update.CallbackQuery.From.Username, UserFields.Pricing, codeOfButton);
+            MainMenu(botClient: botClient, update.CallbackQuery.From.Id, cancellationToken: cancellationToken, "Выбран тариф 3");
+            return;
         }
     }
 
@@ -113,7 +284,7 @@ public class UpdateHandler: IUpdateHandler
         return Task.CompletedTask;
     }
 
-    public static async void MainMenu(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
+    public static async void MainMenu(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken, string textMessage)
     {
         InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup(
             // keyboard
@@ -123,68 +294,32 @@ public class UpdateHandler: IUpdateHandler
                 new[]
                 {
                     // first button in row
-                    InlineKeyboardButton.WithCallbackData(text: "Информация о боте", callbackData: "Info"),
+                    InlineKeyboardButton.WithCallbackData(text: "Информация о боте", callbackData: "InfoButtonMainMenu"),
                 },
                 // second row
                 new[]
                 {
-                    InlineKeyboardButton.WithCallbackData(text: "Выбор тарифа", callbackData: "Pricing"),
-                    InlineKeyboardButton.WithCallbackData(text: "Выбор способа оплаты", callbackData: "Payment"),
+                    InlineKeyboardButton.WithCallbackData(text: "Выбор тарифа", callbackData: "PricingButtonMainMenu"),
+                    InlineKeyboardButton.WithCallbackData(text: "Выбор способа оплаты", callbackData: "PaymentButtonMainMenu"),
                     
                 },
                 new[]
                 {
-                    InlineKeyboardButton.WithCallbackData("Выбор депозита", callbackData: "Deposit"),
-                    InlineKeyboardButton.WithCallbackData("Выбор стратегии", callbackData: "Strategy"),
+                    InlineKeyboardButton.WithCallbackData("Выбор депозита", callbackData: "DepositButtonMainMenu"),
+                    InlineKeyboardButton.WithCallbackData("Выбор стратегии", callbackData: "StrategyButtonMainMenu"),
                 },
                 new[]
                 {
-                    InlineKeyboardButton.WithCallbackData(text: "Старт", callbackData: "Start"),
+                    InlineKeyboardButton.WithCallbackData(text: "Старт", callbackData: "StartButtonMainMenu"),
                 },
 
             });
 
         Message sentMessage = await botClient.SendTextMessageAsync(
             chatId: chatId,
-            text: "Приветствие",
+            text: textMessage,
             replyMarkup: inlineKeyboard,
             cancellationToken: cancellationToken);
-    }
-
-    public static async void MainMenuSimple(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
-    {
-        InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup(
-            
-            new[]
-            {
-                new[]
-                {
-                    InlineKeyboardButton.WithCallbackData(text: "Информация о боте", callbackData: "Info"),
-                },
-                new[]
-                {
-                    InlineKeyboardButton.WithCallbackData(text: "Выбор тарифа", callbackData: "Pricing"),
-                    InlineKeyboardButton.WithCallbackData(text: "Выбор способа оплаты", callbackData: "Payment"), 
-                    
-                },
-                new[]
-                {
-                    InlineKeyboardButton.WithCallbackData("Выбор депозита", callbackData: "Deposit"),
-                    InlineKeyboardButton.WithCallbackData("Выбор стратегии", callbackData: "Strategy"),
-                },
-                new[]
-                {
-                    InlineKeyboardButton.WithCallbackData(text: "Старт", callbackData: "Start"),
-                },
-
-            });
-
-        Message sentMessage = await botClient.SendTextMessageAsync(
-            chatId: chatId,
-            text: "Главное меню",
-            replyMarkup: inlineKeyboard,
-            cancellationToken: cancellationToken);
-
     }
 
     public static async void PricingMenu(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
@@ -206,7 +341,7 @@ public class UpdateHandler: IUpdateHandler
                 },
                 new[]
                 {
-                    InlineKeyboardButton.WithCallbackData(text: "Показать главное меню", callbackData: "MainMenu"),
+                    InlineKeyboardButton.WithCallbackData(text: "Показать главное меню", callbackData: "MainMenuButton"),
                 },
             });
 
@@ -230,13 +365,13 @@ public class UpdateHandler: IUpdateHandler
 
                 new[]
                 {
-                    InlineKeyboardButton.WithCallbackData(text: "TON", callbackData: "Payment1"),
-                    InlineKeyboardButton.WithCallbackData(text: "Фиат", callbackData: "Payment2"),
-                    InlineKeyboardButton.WithCallbackData(text: "Крипта", callbackData: "Payment3"),
+                    InlineKeyboardButton.WithCallbackData(text: "TON", callbackData: "TON Payment"),
+                    InlineKeyboardButton.WithCallbackData(text: "Фиат", callbackData: "Fiat Payment"),
+                    InlineKeyboardButton.WithCallbackData(text: "Крипта", callbackData: "Crypto Payment"),
                 },
                 new[]
                 {
-                    InlineKeyboardButton.WithCallbackData(text: "Показать главное меню", callbackData: "MainMenu"),
+                    InlineKeyboardButton.WithCallbackData(text: "Показать главное меню", callbackData: "MainMenuButton"),
                 },
             });
 
@@ -261,7 +396,7 @@ public class UpdateHandler: IUpdateHandler
                 },
                 new[]
                 {
-                    InlineKeyboardButton.WithCallbackData(text: "Показать главное меню", callbackData: "MainMenu"),
+                    InlineKeyboardButton.WithCallbackData(text: "Показать главное меню", callbackData: "MainMenuButton"),
                 },
             });
 
@@ -280,13 +415,13 @@ public class UpdateHandler: IUpdateHandler
             {
                 new[]
                 {
-                    InlineKeyboardButton.WithCallbackData(text: "Aggressive", callbackData: "Strategy1"),
-                    InlineKeyboardButton.WithCallbackData(text: "Medium", callbackData: "Strategy2"),
-                    InlineKeyboardButton.WithCallbackData(text: "Lite", callbackData: "Strategy3"),
+                    InlineKeyboardButton.WithCallbackData(text: "Aggressive", callbackData: "Aggressive Strategy"),
+                    InlineKeyboardButton.WithCallbackData(text: "Medium", callbackData: "Medium Strategy"),
+                    InlineKeyboardButton.WithCallbackData(text: "Lite", callbackData: "Lite Strategy"),
                 },
                 new[]
                 {
-                    InlineKeyboardButton.WithCallbackData(text: "Показать главное меню", callbackData: "MainMenu"),
+                    InlineKeyboardButton.WithCallbackData(text: "Показать главное меню", callbackData: "MainMenuButton"),
                 },
             });
 
